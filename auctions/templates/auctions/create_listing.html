@@ -1,0 +1,31 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+
+    <h2>Create Listing</h2>
+    
+    <form action="{% url 'create_listing' %}" method="post">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="form-group">
+                {{field.label_tag}}
+                {{field}}
+                {% if field.errors %}
+                    <ul class="errorlist">
+                        {% for error in field.errors %}
+                            <li>{{error}}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+        {% endfor %}
+        <input class="btn btn-primary" type="submit" value="Create Listing">
+    </form>
+
+    {% if messages %}
+        {% for message in messages%}
+            <div class="alert alert-{{message.tags}}">{{message}}</div>
+        {% endfor %}
+    {% endif %}
+
+{% endblock %}

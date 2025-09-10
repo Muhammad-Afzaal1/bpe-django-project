@@ -4,21 +4,23 @@
     <h2>Active Listings</h2>
 
     {% for listing in listings %}
-        <div class="card" style="max-width: 100%;">
-            <div class="row no-gutters">
-                <div class="col-md-4">
-                    <img style="max-height: 200px; object-fit: cover;" class="img-fluid" src="{{listing.image}}" alt="Item image">
-                </div>
-                <div  class="col-md-8">
-                    <div class="card-body">
-                        <h5 class="card-title">{{listing.title}}</h5>
-                        <div><span style="font-weight: bold;"> Price: </span> {{listing.starting_bid}}</div>
-                        <div style="font-weight: lighter; font-size: small;">Created {{listing.date_time}}</div>
-                        <div>{{listing.description}}</div>
+        <a class="listing-link" href="{% url 'listing' id=listing.pk %}">
+            <div class="card" style="max-width: 100%;">
+                <div class="row no-gutters">
+                    <div class="col-md-4">
+                        <img style="max-height: 200px; object-fit: cover;" class="img-fluid" src="{{listing.image}}" alt="Item image">
                     </div>
-                </div>  
+                    <div  class="col-md-8">
+                        <div class="card-body">
+                            <h5 class="card-title">{{listing.title}}</h5>
+                            <div><span style="font-weight: bold;"> Price: </span> {{listing.starting_bid}}</div>
+                            <div style="font-weight: lighter; font-size: small;">Created {{listing.date_time}}</div>
+                            <div>{{listing.description}}</div>
+                        </div>
+                    </div>  
+                </div>
             </div>
-        </div>
+        </a>
     {% endfor %}
     
 {% endblock %}

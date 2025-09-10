@@ -16,3 +16,13 @@ body {
     margin: 3px 0;
     font-weight: bold;
 }
+
+.listing-link{
+    color: black;
+    display: block;
+    margin-bottom:1rem;
+}
+
+.listing-link:hover{
+    text-decoration: none;
+}

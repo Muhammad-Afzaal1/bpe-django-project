@@ -83,3 +83,9 @@ def create_listing(request):
     return render(request, "auctions/create_listing.html", {
         "form":form
     })
+
+def listing(request, id):
+    listing = Listing.objects.get(pk = id)
+    return render(request, "auctions/listing.html",{
+        "listing":listing
+    })

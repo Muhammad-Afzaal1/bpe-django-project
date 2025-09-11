@@ -49,5 +49,6 @@ class Bid(models.Model):
     def __str__(self):
         return f"${self.amount} by {self.bidder.username} on {self.listing.title}"
 
-# class Comment(models.Model):
-#     pass
+class Comment (models.Model):
+    comment = models.TextField(max_length=500)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)

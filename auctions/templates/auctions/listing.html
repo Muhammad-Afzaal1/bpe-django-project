@@ -1,5 +1,83 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-    <h1>{{listing.title}}</h1>
+    {% if messages %}
+        {% for message in messages%}
+            <div class="alert alert-{{message.tags}}">{{message}}</div>
+        {% endfor %}
+    {% endif %} 
+    <h1>Listing: {{listing.title}}</h1>
+    <img style="max-width: 400px;" src="{{listing.image}}" alt="Item Image">
+    <p class="description mt-2">{{listing.description}}</p>
+    <h1 class="mt-2" id="price">${{listing.current_price}}</h1>
+    <div class="bid-count">{{listing.bids.count}} bids sor far.</div>
+    {% if user.is_authenticated %}
+        {% if listing.creator == user%}
+            {% if listing.active %}
+                <form action="{% url 'close_listing' listing.pk %}">
+                    <button class="btn btn-danger">Close Listing</button>
+                </form>
+            {% else %}
+                {% if listing.highest_bid %}
+                    <div class="winner">
+                        Winner: {{listing.highest_bid.bidder.username}} with ${{listing.highest_bid.amount}}
+                    </div>
+                {% else %}
+                    <div class="info">
+                        This auction was closed with no bids.
+                    </div>
+                {% endif %}
+            {% endif %}
+
+        {% else %}
+
+            {% if listing.active %}
+                <div class="bid-count">Your bid is current bid</div>
+                <form  method="post" >
+                    {% csrf_token %}
+                    {% for field in form %}
+                        {{field}}
+                        {% if field.errors %}
+                            <ul class="errorlist">
+                                {% for error in field.errors %}
+                                    <li>{{error}}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    {% endfor %}
+                    <input class="btn btn-primary" type="submit" value="Place Bid">
+                </form>
+            {% else %}
+                {% if listing.highest_bid.bidder == user %}
+                    <div class="winner">
+                        Winner: You are the winnner with ${{listing.highest_bid.amount}}
+                    </div>
+                {% else %}
+                    <div class="info">
+                        Bidding is closed at ${{listing.current_price}}
+                    </div>
+                {% endif  %}
+            {% endif %}
+            
+        {% endif %}
+    {% else %}
+        {% if listing.active %}
+            <a href="{% url 'login' %}">Login to place Bid</a>
+        {% else %}
+            <div class="info">
+                Bidding is closed at ${{listing.current_price}}
+            </div>
+        {% endif %}
+    {% endif %}
+    <h1>Details</h1>
+    <ul>
+        <li>Listed by: {{listing.creator}}</li>
+        <li>Category: 
+            {% if listing.category %}
+                {{listing.category}}
+            {% else %}
+                <span>No Category Listed</span>
+            {% endif %}
+        </li>
+    </ul>
 {% endblock %}

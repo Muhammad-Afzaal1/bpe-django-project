@@ -26,3 +26,27 @@ body {
 .listing-link:hover{
     text-decoration: none;
 }
+.bid-count{
+    display: inline;
+}
+
+.alert-error{
+    background-color: rgb(243, 113, 113);
+    border: 1px solid red;
+}
+
+.winner{
+    padding: 5px;
+    background-color: rgb(32, 215, 221);
+    font-weight: bold;
+    font-size: large;
+    border-radius: 4px;
+}
+
+.info{
+    padding: 5px;
+    background-color: rgb(223, 38, 87);
+    font-weight: bold;
+    font-size: large;
+    border-radius: 4px;
+}

@@ -5,8 +5,8 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect,get_object_or_404
 from django.urls import reverse
 from django.contrib import messages
-from .forms import ListingForm, BidForm
-from .models import User, Listing, Category
+from .forms import ListingForm, BidForm, CommentForm
+from .models import User, Listing, Category, Comment
 
 
 def index(request):
@@ -109,9 +109,12 @@ def listing(request, id):
                 bid.save()
                 messages.success(request, "your bid was placed successfully.")
                 return redirect("listing", id=listing.id)
+    comment_form = CommentForm()
+    comments = Comment.objects.all()
     return render(request, "auctions/listing.html",{
         "listing":listing,
-        "form":form
+        "form":form,
+        "comment_form":comment_form
     })
 
 def close_listing(request, id):

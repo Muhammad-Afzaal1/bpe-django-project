@@ -80,4 +80,35 @@
             {% endif %}
         </li>
     </ul>
+
+    <h1>Comments</h1>
+        
+    <hr>
+
+    {% if user.is_authenticated %}
+        <form action="{% url 'add_comment' listing.id %}" method="post">
+            {% csrf_token %}
+            {% for field in comment_form %}
+                {{field}}
+            {% endfor %}
+            <input class="btn btn-primary" type="submit" value="Add Comment">
+        </form>
+    {% else %}
+        <h3>To add comment <a href="{% url 'login' %}">Login</a></h3>
+    {% endif %}
+
+    {% if comments %}
+        <div class="comments">
+            {% for comment in comments %}
+                <div class="comment">
+                    <div class="comment-user">{{comment.user}}</div>
+                    <div class="comment-comment">{{comment.comment}}</div>
+                </div>
+            {% endfor %}
+        </div>
+        
+    {% else %}
+        <div>There is no Comment yet</div>
+    {% endif %}
+
 {% endblock %}

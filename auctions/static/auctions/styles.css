@@ -50,3 +50,27 @@ body {
     font-size: large;
     border-radius: 4px;
 }
+
+#id_comment{
+    width: 100%;
+}
+
+.comment-user{
+    font-weight: bold;
+}
+.comment-comment{
+    margin-left: 1rem;
+}
+
+.comments{
+    margin-top: 1rem;
+    padding: 0.5rem;
+    background-color: white;
+}
+.comment{
+    margin-bottom: 1rem;
+    background-color: #ffe6e6;
+    padding: 1rem;
+    border-radius: 5px;
+    box-shadow: 1px 1px 5px 1px black;
+}

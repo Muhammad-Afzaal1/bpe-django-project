@@ -110,11 +110,12 @@ def listing(request, id):
                 messages.success(request, "your bid was placed successfully.")
                 return redirect("listing", id=listing.id)
     comment_form = CommentForm()
-    comments = Comment.objects.all()
+    comments = Comment.objects.filter(listing = listing)
     return render(request, "auctions/listing.html",{
         "listing":listing,
         "form":form,
-        "comment_form":comment_form
+        "comment_form":comment_form,
+        "comments":comments
     })
 
 def close_listing(request, id):
@@ -126,3 +127,14 @@ def close_listing(request, id):
     listing.active = False
     listing.save()
     return redirect("listing", id = id)
+
+@login_required
+def add_comment(request, id):
+    listing = get_object_or_404(Listing, pk = id)
+    comment = CommentForm(request.POST)
+    comment = comment.save(commit=False)
+    comment.user = request.user
+    comment.listing = listing
+    comment.save()
+
+    return redirect("listing", id=id)

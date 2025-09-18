@@ -5,7 +5,20 @@
         {% for message in messages%}
             <div class="alert alert-{{message.tags}}">{{message}}</div>
         {% endfor %}
-    {% endif %} 
+    {% endif %}
+
+    {% if user.is_authenticated %}
+        <form action="{% url 'toggle_watchlist' listing.id %}" method="post">
+            {% csrf_token %}
+            {% if in_watchlist %}
+                <button type="submit" class="btn btn-warning">Remove from Watchlist</button>
+            {% else %}
+                <button type="submit" class="btn btn-success">Add to Watchlist</button>
+            {% endif %}
+        </form>
+    {% endif %}
+
+
     <h1>Listing: {{listing.title}}</h1>
     <img style="max-width: 400px;" src="{{listing.image}}" alt="Item Image">
     <p class="description mt-2">{{listing.description}}</p>

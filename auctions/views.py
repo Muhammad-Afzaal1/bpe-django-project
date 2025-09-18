@@ -6,15 +6,21 @@ from django.shortcuts import render, redirect,get_object_or_404
 from django.urls import reverse
 from django.contrib import messages
 from .forms import ListingForm, BidForm, CommentForm
-from .models import User, Listing, Category, Comment
+from .models import User, Listing, Category, Comment, Watchlist
 
 
 def index(request):
     listings = Listing.objects.all()
-
-    return render(request, "auctions/index.html",{
-        "listings":listings
-    })
+    if request.user.is_authenticated:
+        watchlist_count = request.user.watchlist_set.all()
+        return render(request, "auctions/index.html",{
+            "listings":listings,
+            "count":len(watchlist_count)
+        })
+    else:
+        return render(request, "auctions/index.html",{
+            "listings":listings,
+        })
 
 
 def login_view(request):
@@ -83,9 +89,11 @@ def create_listing(request):
             messages.error(request, "Please correct the error below")
     else:
         form = ListingForm()
+        watchlist_items = Listing.objects.filter(watchlist__user = request.user)
 
     return render(request, "auctions/create_listing.html", {
-        "form":form
+        "form":form,
+        "count":watchlist_items.count()
     })
 
 def listing(request, id):
@@ -111,11 +119,18 @@ def listing(request, id):
                 return redirect("listing", id=listing.id)
     comment_form = CommentForm()
     comments = Comment.objects.filter(listing = listing)
+    in_watchlist = False
+    watchlist_items = 0
+    if request.user.is_authenticated:
+        in_watchlist = listing.watchlist_set.filter(user = request.user).exists()
+        watchlist_items = Listing.objects.filter(watchlist__user = request.user).count()
     return render(request, "auctions/listing.html",{
         "listing":listing,
         "form":form,
         "comment_form":comment_form,
-        "comments":comments
+        "comments":comments,
+        "in_watchlist":in_watchlist,
+        "count":watchlist_items
     })
 
 def close_listing(request, id):
@@ -138,3 +153,41 @@ def add_comment(request, id):
     comment.save()
 
     return redirect("listing", id=id)
+
+@login_required
+def toggle_watchlist(request, id):
+    listing = get_object_or_404(Listing, pk = id)
+    watchlist_item = Watchlist.objects.filter(listing = listing, user = request.user).first()
+
+    if watchlist_item:
+        watchlist_item.delete()
+    else:
+        Watchlist.objects.create(user = request.user, listing = listing)
+
+    return redirect('listing', id = id)
+
+@login_required
+def watchlist(request):
+    watchlist_items = request.user.watchlist_set.all()
+    listings = [item.listing for item in watchlist_items]
+    return render(request, "auctions/index.html", {
+        "listings":listings,
+        "count": len(listings)
+    })
+
+def categories(request):
+    categories = Category.objects.all()
+    watchlist_items = request.user.watchlist_set.all()
+    return render(request, "auctions/categories.html",{
+        "categories":categories,
+        "count": len(watchlist_items)
+    })
+
+def category(request, category):
+    category = get_object_or_404(Category, name = category)
+    listings = Listing.objects.filter(category = category)
+    watchlist_items = request.user.watchlist_set.all()
+    return render(request, "auctions/index.html",{
+        "listings":listings,
+        "count": len(watchlist_items)
+    })

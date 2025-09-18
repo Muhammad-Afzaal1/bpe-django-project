@@ -25,6 +25,14 @@
                     <a class="nav-link" href="{% url 'create_listing' %}">Create Listing</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" href="{% url 'watchlist' %}">Watchlist
+                        <span class="badge badge-secondary">{{count}}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'categories' %}" >Categories</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
                 </li>           
             {% else %}

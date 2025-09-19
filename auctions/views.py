@@ -10,7 +10,7 @@ from .models import User, Listing, Category, Comment, Watchlist
 
 
 def index(request):
-    listings = Listing.objects.all()
+    listings = Listing.objects.filter(active = True)
     if request.user.is_authenticated:
         watchlist_count = request.user.watchlist_set.all()
         return render(request, "auctions/index.html",{

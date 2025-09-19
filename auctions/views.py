@@ -185,7 +185,7 @@ def categories(request):
 
 def category(request, category):
     category = get_object_or_404(Category, name = category)
-    listings = Listing.objects.filter(category = category)
+    listings = Listing.objects.filter(category = category, active = True)
     watchlist_items = request.user.watchlist_set.all()
     return render(request, "auctions/index.html",{
         "listings":listings,

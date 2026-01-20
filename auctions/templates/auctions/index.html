@@ -1,6 +1,65 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
+
+<form method="get" class="mb-4">
+    <div class="form-row">
+
+        <div class="col-md-4">
+            <input
+                type="text"
+                name="q"
+                class="form-control"
+                placeholder="Search products..."
+                value="{{ request.GET.q }}"
+            >
+        </div>
+
+        <div class="col-md-3">
+            <select name="category" class="form-control">
+                <option value="">All Categories</option>
+                {% for category in categories %}
+                    <option value="{{ category.id }}"
+                        {% if request.GET.category == category.id|stringformat:"s" %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ category.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <input
+                type="number"
+                name="min_price"
+                class="form-control"
+                placeholder="Min $"
+                value="{{ request.GET.min_price }}"
+            >
+        </div>
+
+        <div class="col-md-2">
+            <input
+                type="number"
+                name="max_price"
+                class="form-control"
+                placeholder="Max $"
+                value="{{ request.GET.max_price }}"
+            >
+        </div>
+
+        <div class="col-md-1">
+            <button class="btn btn-primary btn-block">
+                Search
+            </button>
+        </div>
+
+    </div>
+</form>
+
+
     <h2>Active Listings</h2>
     {% if listings %}
         {% for listing in listings %}
@@ -13,7 +72,7 @@
                         <div  class="col-md-8">
                             <div class="card-body">
                                 <h5 class="card-title">{{listing.title}}</h5>
-                                <div><span style="font-weight: bold;"> Price: </span> {{listing.starting_bid}}</div>
+                                <div><span style="font-weight: bold;"> Price: $</span> {{listing.starting_bid}}</div>
                                 <div style="font-weight: lighter; font-size: small;">Created {{listing.date_time}}</div>
                                 <div>{{listing.description}}</div>
                             </div>

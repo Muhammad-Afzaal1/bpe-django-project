@@ -20,18 +20,31 @@
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'index' %}">Active Listings</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'categories' %}" >Categories</a>
+            </li>
             {% if user.is_authenticated %}
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'create_listing' %}">Create Listing</a>
-                </li>
+                {% if user.is_seller %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'create_listing' %}">Create Listing</a>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <form action="{% url 'become_seller' %}", method="post" style="display: inline;">
+                            {% csrf_token %}
+                            <button class="btn btn-sm btn-outline-success ml-2">
+                                Beocme Seller
+                            </button>
+                        </form>
+                    </li>
+                {% endif %}
+
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'watchlist' %}">Watchlist
                         <span class="badge badge-secondary">{{count}}</span>
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'categories' %}" >Categories</a>
-                </li>
+                
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
                 </li>           

@@ -3,7 +3,22 @@ from django.db import models
 
 
 class User(AbstractUser):
-    pass
+    BUYER = "buyer"
+    SELLER = "seller"
+
+    ROLE_CHOICES = [
+        (BUYER, "Buyer"),
+        (SELLER, "Seller"),
+    ]
+
+    role = models.CharField(
+        max_length=10,
+        choices=ROLE_CHOICES,
+        default=BUYER
+    )
+
+    def is_seller(self):
+        return self.role == self.SELLER
 
 class Category(models.Model):
     name = models.CharField(max_length=50, unique=True)

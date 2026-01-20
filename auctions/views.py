@@ -1,7 +1,8 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.db.models import Q
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.shortcuts import render, redirect,get_object_or_404
 from django.urls import reverse
 from django.contrib import messages
@@ -11,11 +12,33 @@ from .models import User, Listing, Category, Comment, Watchlist
 
 def index(request):
     listings = Listing.objects.filter(active = True)
+
+    query = request.GET.get('q')
+    category_id = request.GET.get('category')
+    min_price = request.GET.get("min_price")
+    max_price = request.GET.get("max_price")
+
+    if query:
+        listings = listings.filter(
+            Q(title__icontains=query),
+            Q(description__icontains=query)
+        )
+
+    if category_id:
+        listings = listings.filter(category_id=category_id)
+
+    if min_price:
+        listings = listings.filter(starting_bid__gte=min_price)
+
+    if max_price:
+        listings = listings.filter(starting_bid__lte=max_price)
+
     if request.user.is_authenticated:
         watchlist_count = request.user.watchlist_set.all()
         return render(request, "auctions/index.html",{
             "listings":listings,
-            "count":len(watchlist_count)
+            "count":len(watchlist_count),
+            "categories":Category.objects.all()
         })
     else:
         return render(request, "auctions/index.html",{
@@ -54,13 +77,18 @@ def register(request):
         email = request.POST["email"]
 
         # Ensure password matches confirmation
+
         password = request.POST["password"]
         confirmation = request.POST["confirmation"]
+        if not username or not email or not password or not confirmation:
+            return render(request, "auctions/register.html", {
+                "message": "All fields are required."
+            })
         if password != confirmation:
             return render(request, "auctions/register.html", {
                 "message": "Passwords must match."
             })
-
+        
         # Attempt to create new user
         try:
             user = User.objects.create_user(username, email, password)
@@ -77,6 +105,8 @@ def register(request):
 
 @login_required
 def create_listing(request):
+    if not request.user.is_seller():
+        return HttpResponseForbidden("Only seller can create listing")
     if request.method == 'POST':
         form = ListingForm(request.POST)
         if form.is_valid():
@@ -177,17 +207,35 @@ def watchlist(request):
 
 def categories(request):
     categories = Category.objects.all()
-    watchlist_items = request.user.watchlist_set.all()
+    watchlist_items = 0
+    if request.user.is_authenticated:
+        watchlist_items = Listing.objects.filter(watchlist__user = request.user).count()
     return render(request, "auctions/categories.html",{
         "categories":categories,
-        "count": len(watchlist_items)
+        "count": watchlist_items
     })
 
 def category(request, category):
     category = get_object_or_404(Category, name = category)
     listings = Listing.objects.filter(category = category, active = True)
-    watchlist_items = request.user.watchlist_set.all()
+    watchlist_items = 0
+    if request.user.is_authenticated:
+        watchlist_items = Listing.objects.filter(watchlist__user = request.user).count()
     return render(request, "auctions/index.html",{
         "listings":listings,
-        "count": len(watchlist_items)
+        "count": watchlist_items
     })
+
+
+@login_required
+def become_seller(request):
+    if request.method == "POST":
+        if request.user.role == "seller":
+            return HttpResponseForbidden("You are already a seller.")
+
+        request.user.role = "seller"
+        request.user.save()
+
+        return redirect("index")
+
+    return HttpResponseForbidden("Invalid request.")

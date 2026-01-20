@@ -2,30 +2,65 @@
 
 {% block body %}
 
-    <h2>Create Listing</h2>
-    
-    <form action="{% url 'create_listing' %}" method="post">
-        {% csrf_token %}
-        {% for field in form %}
-            <div class="form-group">
-                {{field.label_tag}}
-                {{field}}
-                {% if field.errors %}
-                    <ul class="errorlist">
-                        {% for error in field.errors %}
-                            <li>{{error}}</li>
-                        {% endfor %}
-                    </ul>
-                {% endif %}
-            </div>
-        {% endfor %}
-        <input class="btn btn-primary" type="submit" value="Create Listing">
-    </form>
+<h2>Create Listing</h2>
 
-    {% if messages %}
-        {% for message in messages%}
-            <div class="alert alert-{{message.tags}}">{{message}}</div>
-        {% endfor %}
-    {% endif %}
+<form action="{% url 'create_listing' %}" method="post">
+    {% csrf_token %}
+    {% for field in form %}
+    <div class="mb-3">
+        {{ field.label_tag }}
+        {{ field }}
+        {% if field.errors %}
+        <div class="text-danger small">
+            {{ field.errors }}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+
+    <input class="btn btn-primary" type="submit" value="Create Listing">
+</form>
+
+{% if messages %}
+{% for message in messages%}
+<div class="alert alert-{{message.tags}}">{{message}}</div>
+{% endfor %}
+{% endif %}
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const listingType = document.getElementById("id_listing_type");
+        const startingBid = document.getElementById("id_starting_bid");
+        const buyNowPrice = document.getElementById("id_buy_now_price");
+
+        function togglePriceFields() {
+            if (listingType.value === "auction") {
+                startingBid.disabled = false;
+                startingBid.closest(".mb-3").style.display = "block";
+
+                buyNowPrice.disabled = true;
+                // buyNowPrice.value = ""; // Optional: clear value
+                buyNowPrice.closest(".mb-3").style.display = "none";
+            }
+
+            if (listingType.value === "buy_now") {
+                buyNowPrice.disabled = false;
+                buyNowPrice.closest(".mb-3").style.display = "block";
+
+                startingBid.disabled = true;
+                // startingBid.value = ""; // Optional: clear value
+                startingBid.closest(".mb-3").style.display = "none";
+            }
+        }
+
+        // Initial load
+        if (listingType && startingBid && buyNowPrice) {
+            togglePriceFields();
+            // On change
+            listingType.addEventListener("change", togglePriceFields);
+        }
+    });
+</script>
 
 {% endblock %}

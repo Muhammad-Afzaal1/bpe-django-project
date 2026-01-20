@@ -2,87 +2,97 @@
 
 {% block body %}
 
-<form method="get" class="mb-4">
-    <div class="form-row">
+<div class="container-fluid mt-3">
+    <!-- Responsive Search Form -->
+    <form method="get" class="mb-5 p-4 bg-light rounded shadow-sm">
+        <div class="row g-3 align-items-center">
 
-        <div class="col-md-4">
-            <input
-                type="text"
-                name="q"
-                class="form-control"
-                placeholder="Search products..."
-                value="{{ request.GET.q }}"
-            >
-        </div>
+            <!-- 🔍 Search -->
+            <div class="col-12 col-md-4">
+                <label class="visually-hidden" for="search-input">Search</label>
+                <input id="search-input" type="text" name="q" class="form-control" placeholder="Search products..."
+                    value="{{ request.GET.q|default:'' }}">
+            </div>
 
-        <div class="col-md-3">
-            <select name="category" class="form-control">
-                <option value="">All Categories</option>
-                {% for category in categories %}
-                    <option value="{{ category.id }}"
-                        {% if request.GET.category == category.id|stringformat:"s" %}
+            <!-- 📂 Category -->
+            <div class="col-12 col-sm-6 col-md-3">
+                <label class="visually-hidden" for="category-select">Category</label>
+                <select id="category-select" name="category" class="form-select">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}
                             selected
-                        {% endif %}
-                    >
+                        {% endif %}>
                         {{ category.name }}
                     </option>
-                {% endfor %}
-            </select>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- 💰 Price Range -->
+            <div class="col-6 col-sm-3 col-md-2">
+                <label class="visually-hidden" for="min-price">Min Price</label>
+                <input id="min-price" type="number" name="min_price" class="form-control" placeholder="Min $"
+                    value="{{ request.GET.min_price|default:'' }}">
+            </div>
+            <div class="col-6 col-sm-3 col-md-2">
+                <label class="visually-hidden" for="max-price">Max Price</label>
+                <input id="max-price" type="number" name="max_price" class="form-control" placeholder="Max $"
+                    value="{{ request.GET.max_price|default:'' }}">
+            </div>
+
+            <!-- 🔘 Actions -->
+            <div class="col-12 col-md-1 d-grid">
+                <button class="btn btn-primary" type="submit">Search</button>
+            </div>
         </div>
 
-        <div class="col-md-2">
-            <input
-                type="number"
-                name="min_price"
-                class="form-control"
-                placeholder="Min $"
-                value="{{ request.GET.min_price }}"
-            >
+        <!-- Clear Filter Link -->
+        <div class="row mt-2">
+            <div class="col-12 text-end">
+                <a href="{% url 'index' %}" class="text-decoration-none text-secondary small">Clear Filters</a>
+            </div>
         </div>
-
-        <div class="col-md-2">
-            <input
-                type="number"
-                name="max_price"
-                class="form-control"
-                placeholder="Max $"
-                value="{{ request.GET.max_price }}"
-            >
-        </div>
-
-        <div class="col-md-1">
-            <button class="btn btn-primary btn-block">
-                Search
-            </button>
-        </div>
-
-    </div>
-</form>
+    </form>
 
 
-    <h2>Active Listings</h2>
+    <!-- Listings Grid -->
+    <h2 class="mb-4 fw-bold">Active Listings</h2>
+
     {% if listings %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
         {% for listing in listings %}
-            <a class="listing-link" href="{% url 'listing' id=listing.pk %}">
-                <div class="card" style="max-width: 100%;">
-                    <div class="row no-gutters">
-                        <div class="col-md-4">
-                            <img style="max-height: 200px; object-fit: cover;" class="img-fluid" src="{{listing.image}}" alt="Item image">
+        <div class="col">
+            <a class="text-decoration-none text-dark" href="{% url 'listing' id=listing.pk %}">
+                <div class="card h-100 shadow-sm border-0 transition-card">
+                    <div class="card-img-top-wrapper"
+                        style="height: 200px; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa;">
+                        {% if listing.image %}
+                        <img src="{{listing.image}}" class="card-img-top" alt="{{listing.title}}"
+                            style="max-height: 100%; width: auto; max-width: 100%;">
+                        {% else %}
+                        <span class="text-muted">No Image</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title fw-bold text-truncate">{{listing.title}}</h5>
+                        <p class="card-text text-muted small mb-2">Created {{listing.date_time|date:"M d, Y"}}</p>
+                        <p class="card-text text-truncate">{{listing.description}}</p>
+                        <div class="mt-auto d-flex justify-content-between align-items-center">
+                            <span class="fs-5 fw-bold text-primary">${{listing.current_price}}</span>
+                            <span class="badge bg-secondary">View</span>
                         </div>
-                        <div  class="col-md-8">
-                            <div class="card-body">
-                                <h5 class="card-title">{{listing.title}}</h5>
-                                <div><span style="font-weight: bold;"> Price: $</span> {{listing.starting_bid}}</div>
-                                <div style="font-weight: lighter; font-size: small;">Created {{listing.date_time}}</div>
-                                <div>{{listing.description}}</div>
-                            </div>
-                        </div>  
                     </div>
                 </div>
             </a>
+        </div>
         {% endfor %}
+    </div>
     {% else %}
-            <h5 style="color: red;">There is no item in the listing</h5>
+    <div class="alert alert-info" role="alert">
+        No active listings found using the selected criteria.
+    </div>
     {% endif %}
+</div>
 
 {% endblock %}

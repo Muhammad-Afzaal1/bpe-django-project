@@ -16,4 +16,5 @@ urlpatterns = [
     path("categories", views.categories, name='categories'),
     path("categories/<str:category>", views.category, name="category"),
     path("become-seller/", views.become_seller, name="become_seller"),
+    path("buy-now/<int:listing_id>/", views.buy_now, name="buy_now"),
 ]

@@ -1,76 +1,120 @@
+:root {
+    --primary-color: #0d6efd;
+    --secondary-color: #6c757d;
+    --bg-light: #f8f9fa;
+}
+
 body {
-    padding: 10px;
+    padding: 20px;
+    font-family: 'Inter', sans-serif;
+    background-color: #fdfdfd;
+    color: #333;
 }
 
-.errorlist {
-    color: red;               
-    background: #ffe6e6;      
-    border: 1px solid red;    
-    padding: 8px 12px;        
-    border-radius: 5px;       
-    list-style: none;         
-    margin: 5px 0;
+/* Form Styles */
+.form-control:focus, .form-select:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+    border-color: var(--primary-color);
 }
 
-.errorlist li {
-    margin: 3px 0;
-    font-weight: bold;
+/* Card Transitions */
+.transition-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.transition-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    text-decoration: none;
+}
+
+.card-img-top-wrapper img {
+    transition: transform 0.3s ease;
+}
+
+.card:hover .card-img-top-wrapper img {
+    transform: scale(1.05);
 }
 
 .listing-link{
-    color: black;
+    text-decoration: none;
+    color: inherit;
     display: block;
-    margin-bottom:1rem;
 }
 
 .listing-link:hover{
     text-decoration: none;
-}
-.bid-count{
-    display: inline;
+    color: inherit;
 }
 
-.alert-error{
-    background-color: rgb(243, 113, 113);
-    border: 1px solid red;
+/* Errors */
+.errorlist {
+    color: #dc3545;
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.25rem;
+    list-style: none;
+    margin-bottom: 1rem;
+}
+
+.errorlist li {
+    margin: 0;
+}
+
+/* Bids & Winners */
+.bid-count{
+    display: inline;
+    font-weight: 500;
 }
 
 .winner{
-    padding: 5px;
-    background-color: rgb(32, 215, 221);
-    font-weight: bold;
-    font-size: large;
+    padding: 8px 12px;
+    background-color: #d1e7dd;
+    color: #0f5132;
+    font-weight: 600;
     border-radius: 4px;
+    border: 1px solid #badbcc;
 }
 
 .info{
-    padding: 5px;
-    background-color: rgb(223, 38, 87);
-    font-weight: bold;
-    font-size: large;
+    padding: 8px 12px;
+    background-color: #cff4fc;
+    color: #055160;
+    font-weight: 600;
     border-radius: 4px;
+    border: 1px solid #b6effb;
 }
 
-#id_comment{
-    width: 100%;
+/* Comments */
+.comments{
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.comment{
+    margin-bottom: 1rem;
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid var(--primary-color);
 }
 
 .comment-user{
-    font-weight: bold;
-}
-.comment-comment{
-    margin-left: 1rem;
+    font-weight: 600;
+    color: var(--primary-color);
 }
 
-.comments{
-    margin-top: 1rem;
-    padding: 0.5rem;
-    background-color: white;
+.comment-comment{
+    margin-top: 0.5rem;
+    color: #555;
+    margin-left: 0; /* Override old margin */
 }
-.comment{
-    margin-bottom: 1rem;
-    background-color: #ffe6e6;
-    padding: 1rem;
-    border-radius: 5px;
-    box-shadow: 1px 1px 5px 1px black;
+
+/* Button overrides if needed */
+.btn-block {
+    width: 100%; /* Restore bootstrap 4 class functionality if used elsewhere, though BS5 uses w-100 or d-grid */
 }

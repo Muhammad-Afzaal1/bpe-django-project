@@ -202,7 +202,8 @@ def watchlist(request):
     listings = [item.listing for item in watchlist_items]
     return render(request, "auctions/index.html", {
         "listings":listings,
-        "count": len(listings)
+        "count": len(listings),
+        "categories":Category.objects.all()
     })
 
 def categories(request):
@@ -239,3 +240,38 @@ def become_seller(request):
         return redirect("index")
 
     return HttpResponseForbidden("Invalid request.")
+
+@login_required
+def buy_now(request, listing_id):
+    listing = get_object_or_404(Listing, id=listing_id)
+
+    # Only POST allowed
+    if request.method != "POST":
+        messages.error(request, "Invalid request.")
+        return redirect("listing", listing_id)
+
+    # Must be Buy Now listing
+    if listing.listing_type != Listing.BUY_NOW:
+        messages.error(request, "This item is not available for direct purchase.")
+        return redirect("listing", listing_id)
+
+    # Listing must be active
+    if not listing.active:
+        messages.error(request, "This listing is no longer active.")
+        return redirect("listing", listing_id)
+
+    # Seller cannot buy own item
+    if listing.creator == request.user:
+        messages.error(request, "You cannot buy your own listing.")
+        return redirect("listing", listing_id)
+
+    # ✅ Perform purchase (basic version)
+    listing.active = False
+    listing.save()
+
+    messages.success(
+        request,
+        f"You successfully purchased '{listing.title}' for ${listing.buy_now_price}."
+    )
+
+    return redirect("listing", listing_id)

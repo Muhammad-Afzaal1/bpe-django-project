@@ -1,0 +1,119 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+
+<div class="container-fluid mt-3">
+    <h2 class="mb-4 fw-bold">Purchased Items</h2>
+
+    <!-- Direct Orders -->
+    <h3 class="mb-3">Direct Orders</h3>
+    {% if orders %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
+        {% for order in orders %}
+        <div class="col">
+            <a class="text-decoration-none text-dark" href="{% url 'listing' id=order.listing.pk %}">
+                <div class="card h-100 shadow-sm border-0 transition-card">
+                    <div class="card-img-top-wrapper position-relative"
+                        style="height: 200px; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa;">
+                        {% if order.listing.image %}
+                        <img src="{{order.listing.image}}" class="card-img-top" alt="{{order.listing.title}}"
+                            style="max-height: 100%; width: auto; max-width: 100%;">
+                        {% else %}
+                        <span class="text-muted">No Image</span>
+                        {% endif %}
+
+                        <!-- Listing Type Badge (Left) -->
+                        <span class="position-absolute top-0 start-0 m-2 badge bg-info">
+                            Buy Now
+                        </span>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title fw-bold text-truncate">{{order.listing.title}}</h5>
+                        <p class="card-text text-muted small mb-2">Purchased on {{order.created_at|date:"M d, Y"}}</p>
+                        <p class="card-text text-truncate">{{order.listing.description}}</p>
+
+                        <div class="mb-2">
+                            {% if order.listing.average_rating %}
+                            <span class="text-warning small">
+                                ★ {{ order.listing.average_rating }}
+                            </span>
+                            <span class="text-muted small">
+                                ({{ order.listing.reviews.count }})
+                            </span>
+                            {% else %}
+                            <span class="text-muted small">No ratings</span>
+                            {% endif %}
+                        </div>
+                        <div class="mt-auto d-flex justify-content-between align-items-center">
+                            <span class="fs-5 fw-bold text-primary">${{order.price}}</span>
+                            <span class="badge bg-success">Purchased (Qty: {{order.quantity}})</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-light mb-5" role="alert">
+        You haven't purchased anything directly yet.
+    </div>
+    {% endif %}
+
+    <!-- Won Auctions -->
+    <h3 class="mb-3">Won Auctions</h3>
+    {% if won_auctions %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for listing in won_auctions %}
+        <div class="col">
+            <a class="text-decoration-none text-dark" href="{% url 'listing' id=listing.pk %}">
+                <div class="card h-100 shadow-sm border-0 transition-card">
+                    <div class="card-img-top-wrapper position-relative"
+                        style="height: 200px; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa;">
+                        {% if listing.image %}
+                        <img src="{{listing.image}}" class="card-img-top" alt="{{listing.title}}"
+                            style="max-height: 100%; width: auto; max-width: 100%;">
+                        {% else %}
+                        <span class="text-muted">No Image</span>
+                        {% endif %}
+
+                        <!-- Listing Type Badge (Left) -->
+                        <span class="position-absolute top-0 start-0 m-2 badge bg-warning text-dark">
+                            Auction
+                        </span>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title fw-bold text-truncate">{{listing.title}}</h5>
+                        <p class="card-text text-muted small mb-2">Ended on {{listing.date_time|date:"M d, Y"}}</p>
+                        <p class="card-text text-truncate">{{listing.description}}</p>
+
+                        <div class="mb-2">
+                            {% if listing.average_rating %}
+                            <span class="text-warning small">
+                                ★ {{ listing.average_rating }}
+                            </span>
+                            <span class="text-muted small">
+                                ({{ listing.reviews.count }})
+                            </span>
+                            {% else %}
+                            <span class="text-muted small">No ratings</span>
+                            {% endif %}
+                        </div>
+                        <div class="mt-auto d-flex justify-content-between align-items-center">
+                            <span class="fs-5 fw-bold text-primary">${{listing.highest_bid.amount}}</span>
+                            <span class="badge bg-warning text-dark">Winner</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-light" role="alert">
+        You haven't won any auctions yet.
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

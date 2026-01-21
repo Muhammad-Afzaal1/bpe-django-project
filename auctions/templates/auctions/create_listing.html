@@ -21,11 +21,7 @@
     <input class="btn btn-primary" type="submit" value="Create Listing">
 </form>
 
-{% if messages %}
-{% for message in messages%}
-<div class="alert alert-{{message.tags}}">{{message}}</div>
-{% endfor %}
-{% endif %}
+
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -33,7 +29,7 @@
         const listingType = document.getElementById("id_listing_type");
         const startingBid = document.getElementById("id_starting_bid");
         const buyNowPrice = document.getElementById("id_buy_now_price");
-
+        const stock = document.getElementById("id_stock")
         function togglePriceFields() {
             if (listingType.value === "auction") {
                 startingBid.disabled = false;
@@ -42,11 +38,13 @@
                 buyNowPrice.disabled = true;
                 // buyNowPrice.value = ""; // Optional: clear value
                 buyNowPrice.closest(".mb-3").style.display = "none";
+                stock.closest(".mb-3").style.display = "none";
             }
 
             if (listingType.value === "buy_now") {
                 buyNowPrice.disabled = false;
                 buyNowPrice.closest(".mb-3").style.display = "block";
+                stock.closest(".mb-3").style.display = "block";
 
                 startingBid.disabled = true;
                 // startingBid.value = ""; // Optional: clear value

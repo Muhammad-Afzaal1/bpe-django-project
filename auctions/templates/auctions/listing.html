@@ -2,158 +2,273 @@
 
 {% block body %}
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-        {% endfor %}
-    {% endif %}
 
-    {% if user.is_authenticated %}
-        <form action="{% url 'toggle_watchlist' listing.id %}" method="post">
+
+{% if user.is_authenticated %}
+<form action="{% url 'toggle_watchlist' listing.id %}" method="post">
+    {% csrf_token %}
+    {% if in_watchlist %}
+    <button class="btn btn-warning mb-3">Remove from Watchlist</button>
+    {% else %}
+    <button class="btn btn-success mb-3">Add to Watchlist</button>
+    {% endif %}
+</form>
+{% endif %}
+
+<h1>
+    {{ listing.title }}
+    {% if listing.average_rating %}
+    <span class="fs-5 text-warning align-middle">
+        ★ {{ listing.average_rating }}
+        <span class="text-muted small">({{ listing.reviews.count }})</span>
+    </span>
+    {% endif %}
+</h1>
+
+<img class="img-fluid mb-3" style="max-width: 400px;" src="{{ listing.image }}" alt="Item Image">
+
+<p class="description">{{ listing.description }}</p>
+
+<h2 class="mt-2">
+    ${{ listing.current_price }}
+</h2>
+
+{% if listing.stock > 0 %}
+<span class="badge bg-success">
+    In stock: {{ listing.stock }}
+</span>
+{% else %}
+<span class="badge bg-danger">
+    Out of stock
+</span>
+{% endif %}
+
+{% if listing.listing_type == "auction" %}
+<div class="text-muted">{{ listing.bids.count }} bids so far</div>
+{% else %}
+<div class="badge bg-success">Buy Now</div>
+{% endif %}
+
+<hr>
+
+{% if user.is_authenticated %}
+
+{% if listing.creator == user %}
+<!-- SELLER VIEW -->
+<div class="card bg-light border-primary mb-3">
+    <div class="card-body">
+        <h5 class="card-title text-primary"><i class="bi bi-gear"></i> Seller Controls</h5>
+        <form action="{% url 'update_listing' listing.id %}" method="post" class="row g-3 align-items-end">
             {% csrf_token %}
-            {% if in_watchlist %}
-                <button class="btn btn-warning mb-3">Remove from Watchlist</button>
-            {% else %}
-                <button class="btn btn-success mb-3">Add to Watchlist</button>
-            {% endif %}
-        </form>
-    {% endif %}
+            <!-- Active Status -->
+            <div class="col-auto">
+                <button type="submit" name="action" value="toggle_status"
+                    class="btn btn-{% if listing.active %}outline-danger{% else %}outline-success{% endif %}">
+                    {% if listing.active %}Deactivate Listing{% else %}Activate Listing{% endif %}
+                </button>
+            </div>
 
-    <h1>{{ listing.title }}</h1>
-
-    <img class="img-fluid mb-3" style="max-width: 400px;" src="{{ listing.image }}" alt="Item Image">
-
-    <p class="description">{{ listing.description }}</p>
-
-    <h2 class="mt-2">
-        ${{ listing.current_price }}
-    </h2>
-
-    {% if listing.listing_type == "auction" %}
-        <div class="text-muted">{{ listing.bids.count }} bids so far</div>
-    {% else %}
-        <div class="badge bg-success">Buy Now</div>
-    {% endif %}
-
-    <hr>
-
-    {% if user.is_authenticated %}
-
-        {% if listing.creator == user %}
-            <!-- SELLER VIEW -->
-
-            {% if listing.active %}
-                <form action="{% url 'close_listing' listing.id %}" method="post">
-                    {% csrf_token %}
-                    <button class="btn btn-danger">Close Listing</button>
-                </form>
-            {% else %}
-                {% if listing.listing_type == "auction" and listing.highest_bid %}
-                    <div class="alert alert-success mt-3">
-                        Winner: {{ listing.highest_bid.bidder.username }} with ${{ listing.highest_bid.amount }}
-                    </div>
-                {% else %}
-                    <div class="alert alert-info mt-3">
-                        Listing is closed.
-                    </div>
-                {% endif %}
-            {% endif %}
-
-        {% else %}
-            <!-- BUYER VIEW -->
-
-            {% if listing.active %}
-
-                {% if listing.listing_type == "auction" %}
-                    <!-- AUCTION BID FORM -->
-                    <form method="post" class="mt-3">
-                        {% csrf_token %}
-                        {% for field in form %}
-                            <div class="mb-2">
-                                {{ field }}
-                                {% if field.errors %}
-                                    <div class="text-danger small">
-                                        {{ field.errors }}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        {% endfor %}
-                        <button class="btn btn-primary">Place Bid</button>
-                    </form>
-
-                {% else %}
-                    <!-- BUY NOW -->
-                    <form action="{% url 'buy_now' listing.id %}" method="post" class="mt-3">
-                        {% csrf_token %}
-                        <button class="btn btn-success btn-lg">
-                            Buy Now for ${{ listing.buy_now_price }}
-                        </button>
-                    </form>
-                {% endif %}
-
-            {% else %}
-                {% if listing.listing_type == "auction" and listing.highest_bid.bidder == user %}
-                    <div class="alert alert-success mt-3">
-                        🎉 You won this auction!
-                    </div>
-                {% else %}
-                    <div class="alert alert-secondary mt-3">
-                        Listing is closed.
-                    </div>
-                {% endif %}
-            {% endif %}
-
-        {% endif %}
-
-    {% else %}
-        {% if listing.active %}
-            <a href="{% url 'login' %}">Login to continue</a>
-        {% endif %}
-    {% endif %}
-
-    <hr>
-
-    <h3>Details</h3>
-    <ul>
-        <li>Listed by: {{ listing.creator.username }}</li>
-        <li>
-            Category:
-            {% if listing.category %}
-                {{ listing.category }}
-            {% else %}
-                No Category
-            {% endif %}
-        </li>
-        <li>Type: {{ listing.get_listing_type_display }}</li>
-    </ul>
-
-    <hr>
-
-    <h3>Comments</h3>
-
-    {% if user.is_authenticated %}
-        <form action="{% url 'add_comment' listing.id %}" method="post">
-            {% csrf_token %}
-            {% for field in comment_form %}
-                <div class="mb-2">{{ field }}</div>
-            {% endfor %}
-            <button class="btn btn-primary">Add Comment</button>
-        </form>
-    {% else %}
-        <p><a href="{% url 'login' %}">Login</a> to comment</p>
-    {% endif %}
-
-    {% if comments %}
-        <div class="mt-3">
-            {% for comment in comments %}
-                <div class="border rounded p-2 mb-2">
-                    <strong>{{ comment.user.username }}</strong>
-                    <p class="mb-0">{{ comment.comment }}</p>
+            <!-- Stock (Buy Now) -->
+            {% if listing.listing_type == 'buy_now' %}
+            <div class="col-auto">
+                <div class="input-group">
+                    <span class="input-group-text">Stock</span>
+                    <input type="number" name="stock" class="form-control" value="{{listing.stock}}"
+                        style="width: 80px;" min="0">
+                    <button type="submit" name="action" value="update_stock" class="btn btn-secondary">Update</button>
                 </div>
-            {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Close Auction -->
+            {% if listing.listing_type == 'auction' and listing.active %}
+            <div class="col-auto">
+                <a href="{% url 'close_listing' listing.id %}" class="btn btn-danger">Close Auction</a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+{% if not listing.active %}
+{% if listing.listing_type == "auction" and listing.highest_bid %}
+<div class="alert alert-success mt-3">
+    Winner: {{ listing.highest_bid.bidder.username }} with ${{ listing.highest_bid.amount }}
+</div>
+{% else %}
+<div class="alert alert-info mt-3">
+    Listing is closed.
+</div>
+{% endif %}
+{% endif %}
+
+{% else %}
+<!-- BUYER VIEW -->
+
+{% if listing.active %}
+
+{% if listing.listing_type == "auction" %}
+<!-- AUCTION BID FORM -->
+<form method="post" class="mt-3">
+    {% csrf_token %}
+    {% for field in form %}
+    <div class="mb-2">
+        {{ field }}
+        {% if field.errors %}
+        <div class="text-danger small">
+            {{ field.errors }}
         </div>
-    {% else %}
-        <p>No comments yet.</p>
-    {% endif %}
+        {% endif %}
+    </div>
+    {% endfor %}
+    <button class="btn btn-primary">Place Bid</button>
+</form>
+
+{% else %}
+<!-- BUY NOW -->
+<form action="{% url 'buy_now' listing.id %}" method="post" class="mt-3">
+    {% csrf_token %}
+
+    <p>
+        <strong>Unit Price:</strong>
+        $<span id="unit-price">{{ listing.buy_now_price }}</span>
+    </p>
+
+    <label for="quantity">Quantity</label>
+    <input id="quantity" type="number" name="quantity" value="1" min="1" max="{{ listing.stock }}"
+        class="form-control w-25">
+
+    <p class="mt-2">
+        <strong>Total Price:</strong>
+        $<span id="total-price">{{ listing.buy_now_price }}</span>
+    </p>
+
+    <button class="btn btn-success btn-lg mt-2">
+        Buy Now
+    </button>
+</form>
+
+{% endif %}
+
+{% else %}
+{% if listing.listing_type == "auction" and listing.highest_bid.bidder == user %}
+<div class="alert alert-success mt-3">
+    🎉 You won this auction!
+</div>
+{% else %}
+<div class="alert alert-secondary mt-3">
+    Listing is closed.
+</div>
+{% endif %}
+{% endif %}
+
+{% endif %}
+
+{% else %}
+{% if listing.active %}
+<a href="{% url 'login' %}">Login to continue</a>
+{% endif %}
+{% endif %}
+
+<hr>
+
+<h3>Details</h3>
+<ul>
+    <li>Listed by: {{ listing.creator.username }}</li>
+    <li>
+        Category:
+        {% if listing.category %}
+        {{ listing.category }}
+        {% else %}
+        No Category
+        {% endif %}
+    </li>
+    <li>Type: {{ listing.get_listing_type_display }}</li>
+</ul>
+
+<hr>
+{% if listing.average_rating %}
+⭐ {{ listing.average_rating }} / 5
+{% endif %}
+
+{% if user.is_authenticated %}
+<h3>Leave a Review</h3>
+<form action="{% url 'add_review' listing.id %}" method="post">
+    {% csrf_token %}
+    {{ review_form.as_p }}
+    <button class="btn btn-primary">Submit Review</button>
+</form>
+{% endif %}
+
+{% if reviews %}
+<div class="mt-3">
+    <h4>Reviews</h4>
+    {% for review in reviews %}
+    <div class="border rounded p-2 mb-2 bg-light">
+        <div class="d-flex justify-content-between">
+            <strong>{{ review.user.username }}</strong>
+            <span class="text-warning">
+                {% for i in "12345" %}
+                {% if forloop.counter <= review.rating %}★{% else %}☆{% endif %} {% endfor %} </span>
+        </div>
+        <small class="text-muted">{{ review.created_at|date:"M d, Y" }}</small>
+        {% if review.comment %}
+        <p class="mb-0 mt-1">{{ review.comment }}</p>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<p>No reviews yet.</p>
+{% endif %}
+
+<hr>
+
+{% if comments %}
+<div class="mt-3">
+    <h4>Comments</h4>
+    {% for comment in comments %}
+    <div class="border rounded p-2 mb-2">
+        <strong>{{ comment.user.username }}</strong>
+        <p class="mb-0">{{ comment.comment }}</p>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<p>No comments yet.</p>
+{% endif %}
+
+<script>
+    const quantityInput = document.getElementById("quantity");
+    const unitPrice = parseFloat(
+        document.getElementById("unit-price").innerText
+    );
+    const totalPriceEl = document.getElementById("total-price");
+
+    function updateTotalPrice() {
+        let qty = quantityInput.value;
+
+        if (qty === "") {
+            totalPriceEl.innerText = "0.00";
+            return;
+        }
+
+        qty = parseInt(qty);
+        totalPriceEl.innerText = (qty * unitPrice).toFixed(2);
+    }
+
+    // Update total while typing
+    quantityInput.addEventListener("input", updateTotalPrice);
+
+    // Enforce minimum only when user leaves the field
+    quantityInput.addEventListener("blur", () => {
+        if (quantityInput.value === "" || quantityInput.value < 1) {
+            quantityInput.value = 1;
+            updateTotalPrice();
+        }
+    });
+</script>
+
+
 
 {% endblock %}

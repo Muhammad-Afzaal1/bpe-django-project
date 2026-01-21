@@ -65,6 +65,14 @@ class Listing(models.Model):
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name="listings")
     active = models.BooleanField(default=True)
+    stock = models.PositiveIntegerField(default=1)
+
+    def average_rating(self):
+        reviews = self.reviews.all()
+        if reviews.exists():
+            return round(sum(r.rating for r in reviews) / reviews.count(), 1)
+        return None
+
 
     def __str__(self):
         return self.title
@@ -108,3 +116,28 @@ class Watchlist(models.Model):
     def __str__(self):
         return f"{self.user.username} -> {self.listing.title}"
     
+
+class Order(models.Model):
+    buyer = models.ForeignKey(User, on_delete=models.CASCADE, related_name="orders")
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+    quantity = models.PositiveBigIntegerField(default=1)
+
+    def __str__(self):
+        return f"{self.buyer} bought {self.listing}"
+    
+class Review(models.Model):
+    RATING_CHOICES = [(i, i) for i in range(1, 6)]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="reviews")
+    rating = models.IntegerField(choices=RATING_CHOICES)
+    comment = models.TextField(max_length=500, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "listing")
+
+    def __str__(self):
+        return f"{self.rating}⭐ by {self.user}"

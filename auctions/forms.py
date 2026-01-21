@@ -1,5 +1,5 @@
 from django import forms
-from .models import Listing, Bid, Comment
+from .models import Listing, Bid, Review
 
 class ListingForm(forms.ModelForm):
 
@@ -11,6 +11,7 @@ class ListingForm(forms.ModelForm):
             "listing_type",
             "starting_bid",
             "buy_now_price",
+            "stock",
             "image",
             "category"
         ]
@@ -20,7 +21,10 @@ class ListingForm(forms.ModelForm):
         listing_type = cleaned_data.get("listing_type")
         starting_bid = cleaned_data.get("starting_bid")
         buy_now_price = cleaned_data.get("buy_now_price")
+        stock = cleaned_data.get('stock')
 
+        if(stock <=0):
+            self.add_error('stock', "Stock should be greater than 0.")
         if listing_type == Listing.AUCTION and not starting_bid:
             self.add_error("starting_bid", "Starting bid is required for auction listings.")
 
@@ -40,10 +44,15 @@ class BidForm(forms.ModelForm):
         model = Bid
         fields = ["amount"]
 
-class CommentForm(forms.ModelForm):
+class ReviewForm(forms.ModelForm):
     class Meta:
-        model = Comment
-        fields = ["comment"]
+        model = Review
+        fields = ["rating", "comment"]
         widgets = {
-            "comment": forms.Textarea(attrs={"rows": 4})
+            "rating": forms.Select(attrs={"class": "form-control"}),
+            "comment": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 3,
+                "placeholder": "Write your feedback (optional)"
+            }),
         }

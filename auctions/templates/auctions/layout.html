@@ -4,7 +4,7 @@
 <html lang="en">
 
 <head>
-    <title>{% block title %}Auctions{% endblock %}</title>
+    <title>{% block title %}Ebay-light{% endblock %}</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,7 +18,7 @@
 </head>
 
 <body>
-    <h1>Auctions</h1>
+    <h1>Ebay-Light</h1>
     <div>
         {% if user.is_authenticated %}
         Signed in as <strong>{{ user.username }}</strong>.
@@ -35,6 +35,9 @@
         <li class="nav-item">
             <a class="nav-link" href="{% url 'create_listing' %}">Create Listing</a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'seller_dashboard' %}">Seller Dashboard</a>
+        </li>
         {% else %}
         <li class="nav-item">
             <form action="{% url 'become_seller' %}" , method="post" style="display: inline;">
@@ -46,6 +49,12 @@
         </li>
         {% endif %}
 
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'purchased_items' %}">Purchased Items</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'auctioned_listings' %}">My Bids</a>
+        </li>
         <li class="nav-item">
             <a class="nav-link d-flex align-items-center gap-2" href="{% url 'watchlist' %}">
                 Watchlist
@@ -69,6 +78,13 @@
         {% endif %}
     </ul>
     <hr>
+    {% if messages %}
+    <div class="container mt-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
     {% block body %}
     {% endblock %}
     <!-- Bootstrap 5.3 JS Bundle -->

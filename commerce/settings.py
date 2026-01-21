@@ -26,7 +26,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key')
 DEBUG = False
 
 ALLOWED_HOSTS = [
-    "ebay-light.onrender.com",
+    "bpe-django-project.onrender.com",
     "127.0.0.1",
     "localhost"
 ]

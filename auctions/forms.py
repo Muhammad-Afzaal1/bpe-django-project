@@ -15,6 +15,16 @@ class ListingForm(forms.ModelForm):
             "image",
             "category"
         ]
+        widgets = {
+            "title": forms.TextInput(attrs={"class": "form-control"}),
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+            "listing_type": forms.Select(attrs={"class": "form-select"}),
+            "starting_bid": forms.NumberInput(attrs={"class": "form-control"}),
+            "buy_now_price": forms.NumberInput(attrs={"class": "form-control"}),
+            "stock": forms.NumberInput(attrs={"class": "form-control"}),
+            "image": forms.URLInput(attrs={"class": "form-control"}),
+            "category": forms.Select(attrs={"class": "form-select"}),
+        }
 
     def clean(self):
         cleaned_data = super().clean()

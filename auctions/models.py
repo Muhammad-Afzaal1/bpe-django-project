@@ -118,14 +118,29 @@ class Watchlist(models.Model):
     
 
 class Order(models.Model):
+    PENDING = "pending"
+    PROCESSED = "processed"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
+
+    STATUS_CHOICES = [
+        (PENDING, "Pending"),
+        (PROCESSED, "Processed"),
+        (COMPLETED, "Completed"),
+        (CANCELLED, "Cancelled")
+    ]
+
     buyer = models.ForeignKey(User, on_delete=models.CASCADE, related_name="orders")
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
     quantity = models.PositiveBigIntegerField(default=1)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=PENDING)
+    delivery_date = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return f"{self.buyer} bought {self.listing}"
+        return f"{self.buyer} bought {self.listing} ({self.status})"
     
 class Review(models.Model):
     RATING_CHOICES = [(i, i) for i in range(1, 6)]

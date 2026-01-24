@@ -21,5 +21,8 @@ urlpatterns = [
     path("buy-now/<int:listing_id>/", views.buy_now, name="buy_now"),
     path("selling", views.seller_dashboard, name="seller_dashboard"),
     path("listings/<int:listing_id>/update", views.update_listing, name="update_listing"),
+    path("orders/<int:order_id>/process", views.process_order, name="process_order"),
+    path("orders/<int:order_id>/cancel", views.cancel_order, name="cancel_order"),
+    path("orders/<int:order_id>/complete", views.complete_order, name="complete_order"),
 ]
 

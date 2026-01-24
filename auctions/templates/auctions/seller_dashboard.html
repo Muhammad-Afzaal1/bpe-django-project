@@ -5,139 +5,310 @@
 <div class="container-fluid mt-3">
     <h2 class="mb-4 fw-bold">Seller Dashboard</h2>
 
-    {% if listings %}
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-        {% for listing in listings %}
-        <div class="col">
-            <div class="card h-100 shadow-sm border-0 transition-card {% if not listing.active %}opacity-75{% endif %}">
-                <!-- Image Wrapper -->
-                <div class="card-img-top-wrapper position-relative"
-                    style="height: 200px; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa;">
-                    {% if listing.image %}
-                    <img src="{{listing.image}}" class="card-img-top" alt="{{listing.title}}"
-                        style="max-height: 100%; width: auto; max-width: 100%;">
-                    {% else %}
-                    <span class="text-muted">No Image</span>
-                    {% endif %}
+    <!-- Tabs Navigation -->
+    <ul class="nav nav-tabs mb-4" id="sellerTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="listings-tab" data-bs-toggle="tab" data-bs-target="#listings"
+                type="button" role="tab" aria-controls="listings" aria-selected="true">
+                My Listings
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link position-relative" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending"
+                type="button" role="tab" aria-controls="pending" aria-selected="false">
+                Pending
+                {% if pending_orders %}
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                    {{ pending_orders.count }}
+                </span>
+                {% endif %}
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="processed-tab" data-bs-toggle="tab" data-bs-target="#processed" type="button"
+                role="tab" aria-controls="processed" aria-selected="false">
+                Processed
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="completed-tab" data-bs-toggle="tab" data-bs-target="#completed" type="button"
+                role="tab" aria-controls="completed" aria-selected="false">
+                Completed
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="cancelled-tab" data-bs-toggle="tab" data-bs-target="#cancelled" type="button"
+                role="tab" aria-controls="cancelled" aria-selected="false">
+                Cancelled
+            </button>
+        </li>
+    </ul>
 
-                    <!-- Listing Type Badge (Left) -->
-                    <span
-                        class="position-absolute top-0 start-0 m-2 badge bg-{% if listing.listing_type == 'auction' %}warning text-dark{% else %}info{% endif %}">
-                        {% if listing.listing_type == 'auction' %}Auction{% else %}Buy Now{% endif %}
-                    </span>
+    <div class="tab-content" id="sellerTabsContent">
+        <!-- Listings Tab -->
+        <div class="tab-pane fade show active" id="listings" role="tabpanel" aria-labelledby="listings-tab">
+            {% if listings %}
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                {% for listing in listings %}
+                <div class="col">
+                    <div
+                        class="card h-100 shadow-sm border-0 transition-card {% if not listing.active %}opacity-75{% endif %}">
+                        <!-- Image Wrapper -->
+                        <div class="card-img-top-wrapper position-relative"
+                            style="height: 200px; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa;">
+                            {% if listing.image %}
+                            <img src="{{listing.image}}" class="card-img-top" alt="{{listing.title}}"
+                                style="max-height: 100%; width: auto; max-width: 100%;">
+                            {% else %}
+                            <span class="text-muted">No Image</span>
+                            {% endif %}
 
-                    <!-- Status Badge (Right) -->
-                    <span
-                        class="position-absolute top-0 end-0 m-2 badge bg-{% if listing.active %}success{% else %}secondary{% endif %}">
-                        {% if listing.active %}Active{% else %}Inactive{% endif %}
-                    </span>
-                </div>
-
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title fw-bold text-truncate" title="{{listing.title}}">
-                        <a href="{% url 'listing' listing.id %}"
-                            class="text-decoration-none text-dark">{{listing.title}}</a>
-                    </h5>
-                    <p class="card-text text-muted small mb-2">Created: {{listing.date_time|date:"M d, Y"}}</p>
-
-                    <div class="mb-2">
-                        {% if listing.average_rating %}
-                        <span class="text-warning small">
-                            ★ {{ listing.average_rating }}
-                        </span>
-                        <span class="text-muted small">
-                            ({{ listing.reviews.count }})
-                        </span>
-                        {% else %}
-                        <span class="text-muted small">No ratings</span>
-                        {% endif %}
-                    </div>
-
-                    <div class="mb-3">
-                        {% if listing.listing_type == 'buy_now' %}
-                        <div class="d-flex justify-content-between">
-                            <span class="small text-muted">Type:</span>
-                            <span class="fw-bold text-info">Buy Now</span>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span class="small text-muted">Price:</span>
-                            <span class="fw-bold">${{listing.buy_now_price}}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mt-1">
-                            <span class="small text-muted">Stock:</span>
                             <span
-                                class="fw-bold {% if listing.stock == 0 %}text-danger{% else %}text-success{% endif %}">
-                                {{listing.stock}}
+                                class="position-absolute top-0 start-0 m-2 badge bg-{% if listing.listing_type == 'auction' %}warning text-dark{% else %}info{% endif %}">
+                                {% if listing.listing_type == 'auction' %}Auction{% else %}Buy Now{% endif %}
+                            </span>
+
+                            <span
+                                class="position-absolute top-0 end-0 m-2 badge bg-{% if listing.active %}success{% else %}secondary{% endif %}">
+                                {% if listing.active %}Active{% else %}Inactive{% endif %}
                             </span>
                         </div>
-                        {% else %}
-                        <div class="d-flex justify-content-between">
-                            <span class="small text-muted">Type:</span>
-                            <span class="fw-bold text-warning text-dark">Auction</span>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span class="small text-muted">Starting Bid:</span>
-                            <span>${{listing.starting_bid}}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mt-1">
-                            <span class="small text-muted">Current Bid:</span>
-                            <span class="fw-bold text-primary">
-                                {% if listing.highest_bid %}
-                                ${{listing.highest_bid.amount}}
-                                {% else %}
-                                No Bids
-                                {% endif %}
-                            </span>
-                        </div>
-                        {% endif %}
-                    </div>
 
-                    <!-- Management Actions -->
-                    <div class="mt-auto pt-3 border-top">
-                        <form action="{% url 'update_listing' listing.id %}" method="post" class="row g-2">
-                            {% csrf_token %}
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title fw-bold text-truncate" title="{{listing.title}}">
+                                <a href="{% url 'listing' listing.id %}"
+                                    class="text-decoration-none text-dark">{{listing.title}}</a>
+                            </h5>
+                            <p class="card-text text-muted small mb-2">Created: {{listing.date_time|date:"M d, Y"}}</p>
 
-                            <!-- Toggle Active/Inactive -->
-                            <div class="col-8">
-                                <button type="submit" name="action" value="toggle_status"
-                                    class="btn btn-sm w-100 btn-outline-{% if listing.active %}danger{% else %}success{% endif %}">
-                                    {% if listing.active %}Deactivate{% else %}Activate{% endif %}
-                                </button>
-                            </div>
-
-                            <!-- Close Auction (Separate) -->
-                            {% if listing.listing_type == 'auction' and listing.active %}
-                            <div class="col-4">
-                                <a href="{% url 'close_listing' listing.id %}" class="btn btn-sm btn-danger w-100"
-                                    title="Close Auction & Declare Winner">Close</a>
-                            </div>
-                            {% endif %}
-
-                            <!-- Stock Update (Buy Now Only) -->
-                            {% if listing.listing_type == 'buy_now' %}
-                            <div class="col-12 mt-2">
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text">Stock</span>
-                                    <input type="number" name="stock" class="form-control" value="{{listing.stock}}"
-                                        min="0">
-                                    <button type="submit" name="action" value="update_stock"
-                                        class="btn btn-outline-secondary">Update</button>
+                            <!-- Stock/Price Info -->
+                            <div class="mb-3">
+                                {% if listing.listing_type == 'buy_now' %}
+                                <div class="d-flex justify-content-between">
+                                    <span class="small text-muted">Price:</span>
+                                    <span class="fw-bold">${{listing.buy_now_price}}</span>
                                 </div>
+                                <div class="d-flex justify-content-between mt-1">
+                                    <span class="small text-muted">Stock:</span>
+                                    <span
+                                        class="fw-bold {% if listing.stock == 0 %}text-danger{% else %}text-success{% endif %}">
+                                        {{listing.stock}}
+                                    </span>
+                                </div>
+                                {% else %}
+                                <div class="d-flex justify-content-between">
+                                    <span class="small text-muted">Starting:</span>
+                                    <span>${{listing.starting_bid}}</span>
+                                </div>
+                                {% endif %}
                             </div>
-                            {% endif %}
-                        </form>
+
+                            <!-- Management Actions -->
+                            <div class="mt-auto pt-3 border-top">
+                                <form action="{% url 'update_listing' listing.id %}" method="post" class="row g-2">
+                                    {% csrf_token %}
+                                    <div class="col-8">
+                                        <button type="submit" name="action" value="toggle_status"
+                                            class="btn btn-sm w-100 btn-outline-{% if listing.active %}danger{% else %}success{% endif %}">
+                                            {% if listing.active %}Deactivate{% else %}Activate{% endif %}
+                                        </button>
+                                    </div>
+                                    {% if listing.listing_type == 'buy_now' %}
+                                    <div class="col-12 mt-2">
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text">Stock</span>
+                                            <input type="number" name="stock" class="form-control"
+                                                value="{{listing.stock}}" min="0">
+                                            <button type="submit" name="action" value="update_stock"
+                                                class="btn btn-outline-secondary">Update</button>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 </div>
+                {% endfor %}
             </div>
+            {% else %}
+            <p class="text-muted text-center py-5">No listings found.</p>
+            {% endif %}
         </div>
-        {% endfor %}
+
+        <!-- Pending Orders Tab -->
+        <div class="tab-pane fade" id="pending" role="tabpanel" aria-labelledby="pending-tab">
+            {% if pending_orders %}
+            <div class="table-responsive card border-0 shadow-sm mt-3">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Date</th>
+                            <th>Item</th>
+                            <th>Buyer</th>
+                            <th>Qty</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in pending_orders %}
+                        <tr>
+                            <td>#{{ order.id }}</td>
+                            <td>{{ order.created_at|date:"M d, Y" }}</td>
+                            <td>
+                                <a href="{% url 'listing' order.listing.id %}" class="text-decoration-none text-dark">
+                                    {{ order.listing.title }}
+                                </a>
+                            </td>
+                            <td>@{{ order.buyer.username }}</td>
+                            <td>{{ order.quantity }}</td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal"
+                                    data-bs-target="#processModal{{ order.id }}">
+                                    Process
+                                </button>
+                                <a href="{% url 'cancel_order' order.id %}" class="btn btn-sm btn-outline-danger ms-1">
+                                    Cancel
+                                </a>
+
+                                <!-- Process Modal -->
+                                <div class="modal fade" id="processModal{{ order.id }}" tabindex="-1"
+                                    aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <form action="{% url 'process_order' order.id %}" method="post">
+                                                {% csrf_token %}
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Process Order #{{ order.id }}</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                        aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>Please specify the expected delivery date and time.</p>
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Delivery Date & Time</label>
+                                                        <input type="datetime-local" name="delivery_date"
+                                                            class="form-control" required
+                                                            min="{{ now|date:'Y-m-d\TH:i' }}">
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary"
+                                                        data-bs-dismiss="modal">Close</button>
+                                                    <button type="submit" class="btn btn-primary">Confirm &
+                                                        Process</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted text-center py-5">No pending orders.</p>
+            {% endif %}
+        </div>
+
+        <!-- Processed Orders Tab -->
+        <div class="tab-pane fade" id="processed" role="tabpanel" aria-labelledby="processed-tab">
+            {% if processed_orders %}
+            <div class="table-responsive card border-0 shadow-sm mt-3">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Item</th>
+                            <th>Buyer</th>
+                            <th>Delivery Due</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in processed_orders %}
+                        <tr>
+                            <td>#{{ order.id }}</td>
+                            <td>{{ order.listing.title }}</td>
+                            <td>@{{ order.buyer.username }}</td>
+                            <td>{{ order.delivery_date|date:"M d, Y H:i" }}</td>
+                            <td><span class="badge bg-info text-dark">Processed</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted text-center py-5">No processed orders.</p>
+            {% endif %}
+        </div>
+
+        <!-- Completed Orders Tab -->
+        <div class="tab-pane fade" id="completed" role="tabpanel" aria-labelledby="completed-tab">
+            {% if completed_orders %}
+            <div class="table-responsive card border-0 shadow-sm mt-3">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Item</th>
+                            <th>Buyer</th>
+                            <th>Completed On</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in completed_orders %}
+                        <tr>
+                            <td>#{{ order.id }}</td>
+                            <td>{{ order.listing.title }}</td>
+                            <td>@{{ order.buyer.username }}</td>
+                            <td>{{ order.delivery_date|date:"M d, Y" }} approx</td>
+                            <td><span class="badge bg-success">Completed</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted text-center py-5">No completed orders.</p>
+            {% endif %}
+        </div>
+
+        <!-- Cancelled Orders Tab -->
+        <div class="tab-pane fade" id="cancelled" role="tabpanel" aria-labelledby="cancelled-tab">
+            {% if cancelled_orders %}
+            <div class="table-responsive card border-0 shadow-sm mt-3">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Item</th>
+                            <th>Buyer</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in cancelled_orders %}
+                        <tr>
+                            <td>#{{ order.id }}</td>
+                            <td>{{ order.listing.title }}</td>
+                            <td>@{{ order.buyer.username }}</td>
+                            <td><span class="badge bg-secondary">Cancelled</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted text-center py-5">No cancelled orders.</p>
+            {% endif %}
+        </div>
+
     </div>
-    {% else %}
-    <div class="text-center py-5">
-        <h4 class="text-muted">You haven't created any listings yet.</h4>
-        <a href="{% url 'create_listing' %}" class="btn btn-primary mt-3">Create First Listing</a>
-    </div>
-    {% endif %}
 </div>
 
 {% endblock %}

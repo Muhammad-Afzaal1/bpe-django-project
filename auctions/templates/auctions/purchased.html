@@ -3,117 +3,195 @@
 {% block body %}
 
 <div class="container-fluid mt-3">
-    <h2 class="mb-4 fw-bold">Purchased Items</h2>
+    <h2 class="mb-4 fw-bold">My Purchases</h2>
 
-    <!-- Direct Orders -->
-    <h3 class="mb-3">Direct Orders</h3>
-    {% if orders %}
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
-        {% for order in orders %}
-        <div class="col">
-            <a class="text-decoration-none text-dark" href="{% url 'listing' id=order.listing.pk %}">
-                <div class="card h-100 shadow-sm border-0 transition-card">
-                    <div class="card-img-top-wrapper position-relative"
-                        style="height: 200px; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa;">
-                        {% if order.listing.image %}
-                        <img src="{{order.listing.image}}" class="card-img-top" alt="{{order.listing.title}}"
-                            style="max-height: 100%; width: auto; max-width: 100%;">
-                        {% else %}
-                        <span class="text-muted">No Image</span>
-                        {% endif %}
+    <ul class="nav nav-tabs mb-4" id="purchasedTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending"
+                type="button" role="tab" aria-controls="pending" aria-selected="true">
+                Pending
+                {% if pending_orders %}
+                <span class="badge bg-secondary ms-1">{{ pending_orders.count }}</span>
+                {% endif %}
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="processed-tab" data-bs-toggle="tab" data-bs-target="#processed" type="button"
+                role="tab" aria-controls="processed" aria-selected="false">
+                Processed (On Way)
+                {% if processed_orders %}
+                <span class="badge bg-info text-dark ms-1">{{ processed_orders.count }}</span>
+                {% endif %}
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="completed-tab" data-bs-toggle="tab" data-bs-target="#completed" type="button"
+                role="tab" aria-controls="completed" aria-selected="false">
+                Purchased History
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="cancelled-tab" data-bs-toggle="tab" data-bs-target="#cancelled" type="button"
+                role="tab" aria-controls="cancelled" aria-selected="false">
+                Cancelled
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="auctions-tab" data-bs-toggle="tab" data-bs-target="#auctions" type="button"
+                role="tab" aria-controls="auctions" aria-selected="false">
+                Won Auctions
+            </button>
+        </li>
+    </ul>
 
-                        <!-- Listing Type Badge (Left) -->
-                        <span class="position-absolute top-0 start-0 m-2 badge bg-info">
-                            Buy Now
-                        </span>
-                    </div>
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title fw-bold text-truncate">{{order.listing.title}}</h5>
-                        <p class="card-text text-muted small mb-2">Purchased on {{order.created_at|date:"M d, Y"}}</p>
-                        <p class="card-text text-truncate">{{order.listing.description}}</p>
+    <div class="tab-content" id="purchasedTabsContent">
 
-                        <div class="mb-2">
-                            {% if order.listing.average_rating %}
-                            <span class="text-warning small">
-                                ★ {{ order.listing.average_rating }}
-                            </span>
-                            <span class="text-muted small">
-                                ({{ order.listing.reviews.count }})
-                            </span>
-                            {% else %}
-                            <span class="text-muted small">No ratings</span>
-                            {% endif %}
-                        </div>
-                        <div class="mt-auto d-flex justify-content-between align-items-center">
-                            <span class="fs-5 fw-bold text-primary">${{order.price}}</span>
-                            <span class="badge bg-success">Purchased (Qty: {{order.quantity}})</span>
-                        </div>
-                    </div>
-                </div>
-            </a>
-        </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <div class="alert alert-light mb-5" role="alert">
-        You haven't purchased anything directly yet.
-    </div>
-    {% endif %}
-
-    <!-- Won Auctions -->
-    <h3 class="mb-3">Won Auctions</h3>
-    {% if won_auctions %}
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-        {% for listing in won_auctions %}
-        <div class="col">
-            <a class="text-decoration-none text-dark" href="{% url 'listing' id=listing.pk %}">
-                <div class="card h-100 shadow-sm border-0 transition-card">
-                    <div class="card-img-top-wrapper position-relative"
-                        style="height: 200px; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa;">
-                        {% if listing.image %}
-                        <img src="{{listing.image}}" class="card-img-top" alt="{{listing.title}}"
-                            style="max-height: 100%; width: auto; max-width: 100%;">
-                        {% else %}
-                        <span class="text-muted">No Image</span>
-                        {% endif %}
-
-                        <!-- Listing Type Badge (Left) -->
-                        <span class="position-absolute top-0 start-0 m-2 badge bg-warning text-dark">
-                            Auction
-                        </span>
-                    </div>
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title fw-bold text-truncate">{{listing.title}}</h5>
-                        <p class="card-text text-muted small mb-2">Ended on {{listing.date_time|date:"M d, Y"}}</p>
-                        <p class="card-text text-truncate">{{listing.description}}</p>
-
-                        <div class="mb-2">
-                            {% if listing.average_rating %}
-                            <span class="text-warning small">
-                                ★ {{ listing.average_rating }}
-                            </span>
-                            <span class="text-muted small">
-                                ({{ listing.reviews.count }})
-                            </span>
-                            {% else %}
-                            <span class="text-muted small">No ratings</span>
-                            {% endif %}
-                        </div>
-                        <div class="mt-auto d-flex justify-content-between align-items-center">
-                            <span class="fs-5 fw-bold text-primary">${{listing.highest_bid.amount}}</span>
-                            <span class="badge bg-warning text-dark">Winner</span>
+        <!-- Pending Orders -->
+        <div class="tab-pane fade show active" id="pending" role="tabpanel" aria-labelledby="pending-tab">
+            {% if pending_orders %}
+            <div class="row row-cols-1 row-cols-md-2 g-4">
+                {% for order in pending_orders %}
+                <div class="col">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold">{{ order.listing.title }}</h5>
+                            <p class="text-muted small">Placed on: {{ order.created_at|date:"M d, Y" }}</p>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="fw-bold text-primary">${{ order.price }}</span>
+                                <span class="badge bg-warning text-dark">Pending Approval</span>
+                            </div>
+                            <a href="{% url 'cancel_order' order.id %}"
+                                class="btn btn-sm btn-outline-danger w-100">Cancel
+                                Order</a>
                         </div>
                     </div>
                 </div>
-            </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted text-center py-5">No pending orders.</p>
+            {% endif %}
         </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <div class="alert alert-light" role="alert">
-        You haven't won any auctions yet.
-    </div>
-    {% endif %}
-</div>
 
-{% endblock %}
+        <!-- Processed Orders -->
+        <div class="tab-pane fade" id="processed" role="tabpanel" aria-labelledby="processed-tab">
+            {% if processed_orders %}
+            <div class="row row-cols-1 row-cols-md-2 g-4">
+                {% for order in processed_orders %}
+                <div class="col">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold">{{ order.listing.title }}</h5>
+                            <p class="text-muted small">
+                                <span class="fw-bold text-dark">Expected Delivery:</span> {{ order.delivery_date }}
+                            </p>
+
+                            <div class="alert alert-light border mb-2 small">
+                                Seller has processed your order.
+                                {% if order.delivery_date and now < order.delivery_date %} It will be available to
+                                    receive at the delivery time. {% else %} It is ready to be received. {% endif %}
+                                    </div>
+
+                                    <div class="d-grid gap-2">
+                                        {% if order.delivery_date and now >= order.delivery_date %}
+                                        <a href="{% url 'complete_order' order.id %}"
+                                            class="btn btn-sm btn-success">Receive & Complete Purchase</a>
+                                        {% else %}
+                                        <button disabled class="btn btn-sm btn-secondary">Arriving Soon...</button>
+                                        <a href="{% url 'cancel_order' order.id %}"
+                                            class="btn btn-sm btn-outline-danger">Cancel Order</a>
+                                        {% endif %}
+                                    </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center py-5">No active deliveries.</p>
+                {% endif %}
+            </div>
+
+            <!-- Completed Orders -->
+            <div class="tab-pane fade" id="completed" role="tabpanel" aria-labelledby="completed-tab">
+                {% if completed_orders %}
+                <div class="table-responsive card border-0 shadow-sm">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Item</th>
+                                <th>Cost</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in completed_orders %}
+                            <tr>
+                                <td>{{ order.listing.title }}</td>
+                                <td>${{ order.price }}</td>
+                                <td><span class="badge bg-success">Received</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center py-5">No completed purchases yet.</p>
+                {% endif %}
+            </div>
+
+            <!-- Cancelled Orders -->
+            <div class="tab-pane fade" id="cancelled" role="tabpanel" aria-labelledby="cancelled-tab">
+                {% if cancelled_orders %}
+                <ul class="list-group list-group-flush shadow-sm">
+                    {% for order in cancelled_orders %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-bold">{{ order.listing.title }}</span>
+                            <div class="small text-muted">Cancelled on {{ order.listing.date_time|date:"M d, Y" }}
+                                approx</div>
+                        </div>
+                        <span class="badge bg-secondary">Cancelled</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted text-center py-5">No cancelled orders.</p>
+                {% endif %}
+            </div>
+
+            <!-- Won Auctions (Legacy) -->
+            <div class="tab-pane fade" id="auctions" role="tabpanel" aria-labelledby="auctions-tab">
+                {% if won_auctions %}
+                <div class="row row-cols-1 row-cols-md-2 g-4">
+                    {% for listing in won_auctions %}
+                    <div class="col">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="position-relative">
+                                {% if listing.image %}
+                                <img src="{{listing.image}}" class="card-img-top" alt="{{listing.title}}"
+                                    style="height: 180px; object-fit: cover;">
+                                {% endif %}
+                                <span class="position-absolute top-0 end-0 m-2 badge bg-success">Won</span>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title fw-bold">
+                                    <a href="{% url 'listing' listing.id %}" class="text-decoration-none text-dark">
+                                        {{listing.title}}
+                                    </a>
+                                </h5>
+                                <p class="text-success fw-bold">Winning Bid: ${{listing.highest_bid.amount}}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center py-5">No auctions won yet.</p>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+
+    {% endblock %}

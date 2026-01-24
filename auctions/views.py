@@ -6,6 +6,7 @@ from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidde
 from django.shortcuts import render, redirect,get_object_or_404
 from django.urls import reverse
 from django.contrib import messages
+from django.utils import timezone
 from .forms import ListingForm, BidForm, ReviewForm
 from .models import User, Listing, Category, Comment, Watchlist, Order, Review, Bid
 
@@ -277,12 +278,13 @@ def buy_now(request, listing_id):
         messages.error(request, "Invalid quantity.")
         return redirect("listing", listing_id)
     
-    # ✅ Perform purchase (basic version)
+    # ✅ Perform purchase (Pending Order)
     Order.objects.create(
         buyer=request.user,
         listing=listing,
         price=listing.buy_now_price,
-        quantity = quantity
+        quantity = quantity,
+        status=Order.PENDING
     )
     listing.stock-=quantity
     if listing.stock == 0:
@@ -291,7 +293,7 @@ def buy_now(request, listing_id):
 
     messages.success(
         request,
-        f"You successfully purchased '{listing.title}' for ${listing.buy_now_price}."
+        f"Order placed for '{listing.title}'. It is now pending seller approval."
     )
 
     return redirect("listing", listing_id)
@@ -332,8 +334,13 @@ def add_review(request, listing_id):
 
 @login_required
 def purchased_items(request):
-    # 1. Direct Orders
-    orders = request.user.orders.select_related('listing').order_by("-created_at")
+    # Get all orders for the user
+    all_orders = request.user.orders.select_related('listing').order_by("-created_at")
+    
+    pending_orders = all_orders.filter(status=Order.PENDING)
+    processed_orders = all_orders.filter(status=Order.PROCESSED)
+    completed_orders = all_orders.filter(status=Order.COMPLETED)
+    cancelled_orders = all_orders.filter(status=Order.CANCELLED)
 
     # 2. Won Auctions
     # Get all inactive auction listings where the user placed a bid
@@ -356,10 +363,14 @@ def purchased_items(request):
     watchlist_count = Listing.objects.filter(watchlist__user=request.user).count()
 
     return render(request, "auctions/purchased.html", {
-        "orders": orders,
+        "pending_orders": pending_orders,
+        "processed_orders": processed_orders,
+        "completed_orders": completed_orders,
+        "cancelled_orders": cancelled_orders,
         "won_auctions": won_auctions,
         "count": watchlist_count,
-        "categories": Category.objects.all()
+        "categories": Category.objects.all(),
+        "now": timezone.now()
     })
 
 @login_required
@@ -414,10 +425,22 @@ def seller_dashboard(request):
     # Get all listings created by this user, ordered by date
     my_listings = Listing.objects.filter(creator=request.user).order_by("-date_time")
     
+    # Get orders for these listings
+    all_orders = Order.objects.filter(listing__creator=request.user).order_by("-created_at")
+
+    pending_orders = all_orders.filter(status=Order.PENDING)
+    processed_orders = all_orders.filter(status=Order.PROCESSED)
+    completed_orders = all_orders.filter(status=Order.COMPLETED)
+    cancelled_orders = all_orders.filter(status=Order.CANCELLED)
+
     watchlist_count = Listing.objects.filter(watchlist__user=request.user).count()
 
     return render(request, "auctions/seller_dashboard.html", {
         "listings": my_listings,
+        "pending_orders": pending_orders,
+        "processed_orders": processed_orders,
+        "completed_orders": completed_orders,
+        "cancelled_orders": cancelled_orders,
         "count": watchlist_count,
         "categories": Category.objects.all()
     })
@@ -459,3 +482,86 @@ def update_listing(request, listing_id):
 
     # Redirect back to where they came from (dashboard or listing page)
     return redirect(request.META.get('HTTP_REFERER', 'seller_dashboard'))
+
+@login_required
+def process_order(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+
+    # Ensure user is the seller of the listing
+    if order.listing.creator != request.user:
+        return HttpResponseForbidden("You do not have permission to process this order.")
+
+    if request.method == "POST":
+        delivery_date_str = request.POST.get("delivery_date")
+        
+        if not delivery_date_str:
+            messages.error(request, "Delivery date is required.")
+            return redirect("seller_dashboard")
+
+        try:
+             # Parse datetime if needed, Django usually handles this well with correct input type
+            order.delivery_date = delivery_date_str
+            order.status = Order.PROCESSED
+            order.save()
+            messages.success(request, f"Order #{order.id} processed with delivery set to {delivery_date_str}.")
+        except Exception:
+             messages.error(request, "Invalid date format.")
+
+        
+    return redirect("seller_dashboard")
+
+@login_required
+def cancel_order(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    
+    # Allow buyer or seller to cancel
+    if request.user != order.buyer and request.user != order.listing.creator:
+        return HttpResponseForbidden("You do not have permission to cancel this order.")
+
+    # Rules for cancellation
+    can_cancel = False
+    
+    # Pending orders can always be cancelled
+    if order.status == Order.PENDING:
+        can_cancel = True
+    
+    # Processed orders can be cancelled if delivery date is in future
+    elif order.status == Order.PROCESSED and order.delivery_date:
+        if order.delivery_date > timezone.now():
+            can_cancel = True
+            
+    if can_cancel:
+        order.status = Order.CANCELLED
+        
+        # Restore stock
+        order.listing.stock += order.quantity
+        if order.listing.stock > 0 and not order.listing.active:
+             # Optionally reactivate listing or leave it inactive? 
+             # Let's leave it as is unless stock was 0
+             pass
+        order.listing.save()
+        
+        order.save()
+        messages.success(request, f"Order #{order.id} has been cancelled.")
+    else:
+        messages.error(request, "This order cannot be cancelled.")
+
+    return redirect(request.META.get('HTTP_REFERER', 'purchased_items'))
+
+@login_required
+def complete_order(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    
+    if request.user != order.buyer:
+        return HttpResponseForbidden("Only the buyer can complete the order.")
+        
+    if order.status == Order.PROCESSED:
+        
+        if order.delivery_date and order.delivery_date <= timezone.now():
+             order.status = Order.COMPLETED
+             order.save()
+             messages.success(request, f"Order #{order.id} marked as received/completed.")
+        else:
+             messages.error(request, "You cannot complete this order yet (wait for delivery time).")
+    
+    return redirect("purchased_items")
